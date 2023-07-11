@@ -16,7 +16,7 @@ app.use(cors())
 const authenticationCheck = async (req, res, next) => {
     try {
         const token = req.headers.authorization.split(" ")[1]
-		const decoded = jwt.verify(token, '123@lol');
+        const decoded = jwt.verify(token, '123@lol');
         const { username } = decoded
         const user = await userModel.findOne({ username: username })
         if (user) {
@@ -37,12 +37,19 @@ app.get('/', (req, res) => {
     res.send('Home router')
 })
 
+app.get('/me/:id', authenticationCheck, async (req, res)=> {
+    const userid = req.params.id
+    const user = await userModel.findOne({userid})
+    res.send(user)
+})
+
 app.post('/login', async (req, res) => {
     const { username, password } = req.body
     const user = await userModel.findOne({ username })
     if (user && bcrypt.compareSync(password, user.password)) {
         const accesstoken = jwt.sign({ username: username }, '123@lol')
-        res.send({ token: accesstoken })
+        res.send({ token: accesstoken, user: user })
+
     } else {
         res.send('khong tim thay')
     }
@@ -65,6 +72,8 @@ app.put('/update', async (req, res) => {
     const { username, password } = res.body
 })
 
+
+
 app.listen(4000)
-console.log('Server running')
+console.log('Server running on port 4000')
 module.exports = app;
